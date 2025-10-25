@@ -3,6 +3,8 @@ import platform
 import random
 import tkinter as tk
 import time
+from _ast import Return
+
 import pygetwindow as gw
 
 
@@ -183,29 +185,29 @@ class AstronautDuckAnimations:
             safe_windows = [
                 w for w in all_windows
                 if w.title
-                and w.title != "Astronaut Duck"
-                and w.title != ""
-                and "Program Manager" not in w.title
-                and "Task Switching" not in w.title
+                   and w.title != "Astronaut Duck"
+                   and w.title != ""
+                   and "Program Manager" not in w.title
+                   and "Task Switching" not in w.title
             ]
             if safe_windows:
                 target = random.choice(safe_windows)
                 return target
-
         except Exception as e:
-            print("Error getting windows")
+            print(f"Error getting windows{e}")
+        return None
 
-       def close_random_window(self):
-            system = platform.system()
-            try:
-                target = self.get_random_window_to_close()
-                if target:
-                    print(f">:| Angry duck closes: {target.title}")
-                    target.close()
-                    return True
-            except Exception as e:
-                print("Error closing window")
-            return False
+    def close_random_window(self):
+        system = platform.system()
+        try:
+            target = self.get_random_window_to_close()
+            if target:
+                print(f">:| Angry duck closes: {target.title}")
+                target.close()
+                return True
+        except Exception as e:
+            print("Error closing window")
+        return False
 
     def choose_next_state(self):
         """Pick a new state"""
