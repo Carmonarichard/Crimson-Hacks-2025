@@ -3,6 +3,7 @@ import platform
 import random
 import tkinter as tk
 import time
+import pygetwindow as gw
 
 
 class AstronautDuckAnimations:
@@ -30,12 +31,12 @@ class AstronautDuckAnimations:
         system = platform.system()
         print(f"✓ Platform: {system}")
 
-        # if system == 'Darwin':  # Mac
-        #     self.window.wm_attributes('-transparent', True)
-        #     print("✓ Using Mac transparency")
-        # elif system == 'Windows':
-        #     self.window.wm_attributes('-transparentcolor', 'black')
-        #     print("✓ Using Windows transparency")
+        if system == 'Darwin':  # Mac
+            self.window.wm_attributes('-transparent', True)
+            print("✓ Using Mac transparency")
+        elif system == 'Windows':
+            self.window.wm_attributes('-transparentcolor', 'black')
+            print("✓ Using Windows transparency")
 
         self.window.wm_attributes('-topmost', True)
 
@@ -68,6 +69,11 @@ class AstronautDuckAnimations:
         self.animations = {}
         self.standing_right_image = None
         self.standing_left_image = None
+
+        # Angry state cooldown
+        self.last_angry_time = 0
+        self.angry_cooldown = 30
+        self.has_closed_window = False
 
         # timer for jumping
         self.last_jump_time = time.time()
@@ -116,6 +122,7 @@ class AstronautDuckAnimations:
             'walk_left': ('images/WalkingLeft.gif', 5),
             'walk_right': ('images/WalkingRight.gif', 5),
             'jump_left': ('images/JumpingLeft.gif', 3),
+            'closing_right': ('images/ClosingRight.gif', 3),
         }
 
         for animation_name, (image_path, frame_count) in animations_config.items():
@@ -163,11 +170,53 @@ class AstronautDuckAnimations:
                 return self.animations.get('walk_left', [])
             else:
                 return self.animations.get('walk_right', [])
+        elif self.current_state == self.STATE_ANGRY:
+            return self.animations.get('closing_right', [])
 
         return []
 
+    def get_random_window_to_close(self):
+        system = platform.system()
+        try:
+            all_windows = gw.getAllWindows()
+
+            safe_windows = [
+                w for w in all_windows
+                if w.title
+                and w.title != "Astronaut Duck"
+                and w.title != ""
+                and "Program Manager" not in w.title
+                and "Task Switching" not in w.title
+            ]
+            if safe_windows:
+                target = random.choice(safe_windows)
+                return target
+
+        except Exception as e:
+            print("Error getting windows")
+
+       def close_random_window(self):
+            system = platform.system()
+            try:
+                target = self.get_random_window_to_close()
+                if target:
+                    print(f">:| Angry duck closes: {target.title}")
+                    target.close()
+                    return True
+            except Exception as e:
+                print("Error closing window")
+            return False
+
     def choose_next_state(self):
         """Pick a new state"""
+        current_time = time.time()
+        can_be_angry = (current_time - self.last_angry_time) > self.angry_cooldown
+
+        if can_be_angry and random.random() > 0.15:
+            self.current_state = self.STATE_ANGRY
+            self.last_angry_time = current_time
+            self.has_closed_window = False
+            print("Duck is getting angry")
 
         rng = random.randint(1, 6)
         if rng == 1:
@@ -187,7 +236,11 @@ class AstronautDuckAnimations:
 
         # Reset counters
         self.state_counter = 0
-        self.max_state_counter = random.randint(30, 100)
+        if self.current_state == self.STATE_ANGRY:
+            self.max_state_counter = random.randint(30, 100)
+        else:
+            self.max_state_counter = random.randint(30, 100)
+
         self.frame_index = 0
 
         state_names = {
