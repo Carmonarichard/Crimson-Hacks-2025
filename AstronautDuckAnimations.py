@@ -191,6 +191,7 @@ class AstronautDuckAnimations:
                    and "Task Switching" not in w.title
                    and "Windows Input Experience" not in w.title
                    and "Settings" not in w.title
+                   and "PyCharm" not in w.title
             ]
             if safe_windows:
                 target = random.choice(safe_windows)
