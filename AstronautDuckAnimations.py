@@ -85,7 +85,7 @@ class AstronautDuckAnimations:
                 print(f'Image path {image_path} does not exist')
                 self.animations[animation_name] = []
 
-
+    def get_current_frame(self):
 
     def animate(self):
         # update position on computer TODO: update pixel size later
