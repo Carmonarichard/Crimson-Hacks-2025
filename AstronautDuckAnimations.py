@@ -1,12 +1,11 @@
 import os
-
-import pyautogui
+import platform
 import random
 import tkinter as tk
 import time
 
-class AstronautDuckAnimations:
 
+class AstronautDuckAnimations:
     STATE_STANDING = 0
     STATE_JUMP = 1
     STATE_WALK_LEFT = 3
@@ -16,66 +15,107 @@ class AstronautDuckAnimations:
     STATE_ANGRY = 7
 
     def __init__(self):
+        print("🦆 Initializing duck...")
+
         # window config
-        self.window = tk.Tk()
-        self.window.overrideredirect(True);
-        self.window.wm_attributes('-transparentcolor', 'black')
+        try:
+            self.window = tk.Tk()
+            print("✓ Window created")
+        except Exception as e:
+            print(f"✗ Failed to create window: {e}")
+            raise
+
+        self.window.overrideredirect(True)
+
+        system = platform.system()
+        print(f"✓ Platform: {system}")
+
+        # if system == 'Darwin':  # Mac
+        #     self.window.wm_attributes('-transparent', True)
+        #     print("✓ Using Mac transparency")
+        # elif system == 'Windows':
+        #     self.window.wm_attributes('-transparentcolor', 'black')
+        #     print("✓ Using Windows transparency")
+
         self.window.wm_attributes('-topmost', True)
+
+        # Get screen size
+        self.screen_width = self.window.winfo_screenwidth()
+        self.screen_height = self.window.winfo_screenheight()
+        print(f"✓ Screen size: {self.screen_width}x{self.screen_height}")
 
         self.pet_width = 100
         self.pet_height = 100
 
-        # save starting position
-        self.screen_width = self.window.winfo_screenwidth()
-        self.screen_height = self.window.winfo_screenheight()
+        # Starting position (center of screen)
         self.x = self.screen_width // 2
         self.y = self.screen_height // 2
+        print(f"✓ Starting position: ({self.x}, {self.y})")
 
         # duck speed
         self.speed = 5
 
         # tracking direction that duck is facing
-        self.facing_direction = 'left'
+        self.facing_direction = 'right'
 
         # duck state
-        self.state = self.STATE_STANDING
+        self.current_state = self.STATE_STANDING
         self.state_counter = 0
         self.max_state_counter = random.randint(30, 100)
 
-        # animation variables TODO: will update later
+        # animation variables
         self.frame_index = 0
         self.animations = {}
         self.standing_right_image = None
         self.standing_left_image = None
 
+        # timer for jumping
+        self.last_jump_time = time.time()
+
         # label for images
         self.label = tk.Label(self.window, bg='black')
         self.label.pack()
+        print("✓ Label created")
 
-        # load placeholder TODO: will update later
+        # load animations
         self.load_animations()
 
+        # Position window
+        self.window.geometry(f'{self.pet_width}x{self.pet_height}+{self.x}+{self.y}')
+
+        print("✓ Starting animation loop...")
         # start animation
         self.animate()
-        self.last_jump_time = time.time()
-
 
     def load_animations(self):
-        # load image and gifs
-        try:
-            self.standing_right_image = tk.PhotoImage(file='images/StandingRight.png')
-            self.standing_left_image = tk.PhotoImage(file='images/StandingLeft.png')
-            print('Successfully loaded standing image') #TODO: remove later
-        except Exception as e:
-            print('Failed to load standing image')
+        print("\n📁 Loading images...")
+        print(f"Current directory: {os.getcwd()}")
+
+        # Check if images folder exists
+        if not os.path.exists('images'):
+            print("⚠️  WARNING: 'images' folder not found!")
+            print("   Please create an 'images' folder with your duck images")
+            return
+
+        for img_name, img_path in [
+            ('standing_right', 'images/StandingRight.gif'),  # Changed from .png
+            ('standing_left', 'images/StandingLeft.gif')  # Changed from .png
+        ]:
+            try:
+                if img_name == 'standing_right':
+                    self.standing_right_image = tk.PhotoImage(file=img_path)
+                else:
+                    self.standing_left_image = tk.PhotoImage(file=img_path)
+                print(f'  ✓ Loaded {img_name}')
+            except Exception as e:
+                print(f'  ✗ Failed to load {img_name}: {e}')
 
         # loading animations
         animations_config = {
-            'jump_right' : ('images/JumpingRight.gif', 3),
-            'walk_left' : ('images/WalkingLeft.gif', 5),
-            'walk_right' : ('images/WalkingRight.gif', 5),
+            'jump_right': ('images/JumpingRight.gif', 3),
+            'walk_left': ('images/WalkingLeft.gif', 5),
+            'walk_right': ('images/WalkingRight.gif', 5),
             'jump_left': ('images/JumpingLeft.gif', 3),
-
         }
 
         for animation_name, (image_path, frame_count) in animations_config.items():
@@ -86,37 +126,39 @@ class AstronautDuckAnimations:
                         for i in range(frame_count)
                     ]
                     self.animations[animation_name] = frames
-                    print(f'Successfully loaded {animation_name} animation') #TODO: remove later
+                    print(f'  ✓ Loaded {animation_name}: {len(frames)} frames')
                 except Exception as e:
-                    print(f'Failed to load {animation_name} animation')
+                    print(f'  ✗ Failed to load {animation_name}: {e}')
                     self.animations[animation_name] = []
             else:
-                print(f'Image path {image_path} does not exist')
+                print(f'  ✗ Not found: {image_path}')
                 self.animations[animation_name] = []
 
+        print("✓ Image loading complete\n")
+
     def get_current_animation(self):
-        if self.state == self.STATE_STANDING:
+        if self.current_state == self.STATE_STANDING:
             return None
 
-        elif self.state == self.STATE_JUMP:
+        elif self.current_state == self.STATE_JUMP:
             if self.facing_direction == 'left':
                 return self.animations.get('jump_left', [])
             else:
                 return self.animations.get('jump_right', [])
 
-        elif self.state == self.STATE_WALK_LEFT:
+        elif self.current_state == self.STATE_WALK_LEFT:
             return self.animations.get('walk_left', [])
 
-        elif self.state == self.STATE_WALK_RIGHT:
+        elif self.current_state == self.STATE_WALK_RIGHT:
             return self.animations.get('walk_right', [])
 
-        elif self.state == self.STATE_WALK_UP:
+        elif self.current_state == self.STATE_WALK_UP:
             if self.facing_direction == 'left':
                 return self.animations.get('walk_left', [])
             else:
                 return self.animations.get('walk_right', [])
 
-        elif self.state == self.STATE_WALK_DOWN:
+        elif self.current_state == self.STATE_WALK_DOWN:
             if self.facing_direction == 'left':
                 return self.animations.get('walk_left', [])
             else:
@@ -124,40 +166,44 @@ class AstronautDuckAnimations:
 
         return []
 
-    def choose_Next_State(self):
+    def choose_next_state(self):
         """Pick a new state"""
-        rng = random.randint(1,6)
+
+        rng = random.randint(1, 6)
         if rng == 1:
-            self.currentState = self.STATE_ANGRY
+            self.current_state = self.STATE_STANDING
         elif rng == 2:
             self.current_state = self.STATE_WALK_UP
         elif rng == 3:
             self.current_state = self.STATE_WALK_RIGHT
-            self.__private_SetDirection()
+            self.__private_set_direction()
         elif rng == 4:
             self.current_state = self.STATE_WALK_LEFT
-            self.__private_SetDirection()
+            self.__private_set_direction()
         elif rng == 5:
             self.current_state = self.STATE_WALK_DOWN
         elif rng == 6:
-            self.current_state = self.STATE_STANDING
+            self.current_state = self.STATE_JUMP
 
-        if self.current_state == self.STATE_STANDING:
-            if (time.time() - start_time) >= 5:
-                start_time = time.time()  # reset timer
-                for i in range(random.randint(1, 3)):
-                    self.current_state = self.STATE_JUMP
-                self.current_state = self.STATE_STANDING
+        # Reset counters
+        self.state_counter = 0
+        self.max_state_counter = random.randint(30, 100)
+        self.frame_index = 0
+
+        state_names = {
+            0: "STANDING", 1: "JUMP", 3: "WALK_LEFT",
+            4: "WALK_RIGHT", 5: "WALK_UP", 6: "WALK_DOWN", 7: "ANGRY"
+        }
+        print(f"→ {state_names.get(self.current_state, 'UNKNOWN')}")
 
     def update_position(self):
-        # move based on state
-        if self.state == self.STATE_WALK_LEFT:
+        if self.current_state == self.STATE_WALK_LEFT:
             self.x -= self.speed
-        elif self.state == self.STATE_WALK_RIGHT:
+        elif self.current_state == self.STATE_WALK_RIGHT:
             self.x += self.speed
-        elif self.state == self.STATE_WALK_UP:
+        elif self.current_state == self.STATE_WALK_UP:
             self.y -= self.speed
-        elif self.state == self.STATE_WALK_DOWN:
+        elif self.current_state == self.STATE_WALK_DOWN:
             self.y += self.speed
 
     def check_screen_boundaries(self):
@@ -172,36 +218,68 @@ class AstronautDuckAnimations:
             self.y = self.screen_height - self.pet_height
 
     def update_animation_frame(self):
-        if self.state == self.STATE_STANDING:
-            if self.facing_direction == 'left':
-                return self.label.configure(image=self.standing_left_image)
-            else:
-                return self.label.configure(image=self.standing_right_image)
-        current_animation = self.get_current_animation()
+        try:
+            if self.current_state == self.STATE_STANDING:
+                if self.facing_direction == 'left' and self.standing_left_image:
+                    self.label.configure(image=self.standing_left_image)
+                elif self.standing_right_image:
+                    self.label.configure(image=self.standing_right_image)
+                return
 
-        if len(current_animation) > 0:
-            frame = current_animation[self.frame_index]
-            self.label.configure(image=frame)
-            self.frame_index = (self.frame_index + 1) % len(current_animation)
+            current_animation = self.get_current_animation()
+
+            if len(current_animation) > 0:
+                frame = current_animation[self.frame_index]
+                self.label.configure(image=frame)
+                self.frame_index = (self.frame_index + 1) % len(current_animation)
+        except Exception as e:
+            print(f"Error updating frame: {e}")
 
     def animate(self):
-        self.update_animation_frame()
-        self.update_position()
-        self.check_screen_boundaries()
-        self.window.geometry(f'{self.pet_width}x{self.pet_height}+{self.x}+{self.y}')
-        # update next frame
-        self.state_counter += 1
-        if self.state_counter >= self.max_state_counter:
-            self.choose_Next_State()
-            self.state_counter = 0
-            self.frame_index = 0
+        try:
+            # Update frame
+            self.update_animation_frame()
 
+            # Update position
+            self.update_position()
+
+            # Check boundaries
+            self.check_screen_boundaries()
+
+            # Move the window
+            self.window.geometry(f'{self.pet_width}x{self.pet_height}+{self.x}+{self.y}')
+
+            # State management
+            self.state_counter += 1
+            if self.state_counter >= self.max_state_counter:
+                self.choose_next_state()
+
+            # Continue loop
+            self.window.after(100, self.animate)
+        except Exception as e:
+            print(f"Error in animate: {e}")
+            import traceback
+            traceback.print_exc()
 
     def run(self):
+        print("🚀 Starting mainloop...\n")
         self.window.mainloop()
 
-    def __private_SetDirection(self):
+    def __private_set_direction(self):
         if self.current_state == self.STATE_WALK_LEFT:
             self.facing_direction = 'left'
         elif self.current_state == self.STATE_WALK_RIGHT:
             self.facing_direction = 'right'
+
+
+# Run the duck!
+if __name__ == "__main__":
+    try:
+        duck = AstronautDuckAnimations()
+        duck.run()
+    except Exception as e:
+        print(f"\n❌ FATAL ERROR: {e}")
+        import traceback
+
+        traceback.print_exc()
+        input("\nPress Enter to exit...")
