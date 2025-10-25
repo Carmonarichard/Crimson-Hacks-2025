@@ -60,16 +60,19 @@ class AstronautDuckAnimations:
     def load_animations(self):
         # load image and gifs
         try:
-            self.standing_right_image = tk.PhotoImage(file='images/duck_standing.png')
+            self.standing_right_image = tk.PhotoImage(file='images/StandingRight.png')
+            self.standing_left_image = tk.PhotoImage(file='images/StandingLeft.png')
             print('Successfully loaded standing image') #TODO: remove later
         except Exception as e:
             print('Failed to load standing image')
 
         # loading animations
         animations_config = {
-            'jump' : ('images/duck_jump.gif', 3),
-            'walk_left' : ('images/duck_walk_left.gif', 5),
-            'walk_right' : ('images/duck_walk_right.gif', 5),
+            'jump_right' : ('images/JumpingRight.gif', 3),
+            'walk_left' : ('images/WalkingLeft.gif', 5),
+            'walk_right' : ('images/WalkingRight.gif', 5),
+            'jump_left': ('images/JumpingLeft.gif', 3),
+
         }
 
         for animation_name, (image_path, frame_count) in animations_config.items():
