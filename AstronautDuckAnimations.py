@@ -87,7 +87,32 @@ class AstronautDuckAnimations:
                 print(f'Image path {image_path} does not exist')
                 self.animations[animation_name] = []
 
-    def get_current_frame(self):
+    def get_current_animation(self):
+        if self.state == self.STATE_STANDING:
+            return None
+
+        elif self.state == self.STATE_JUMP:
+            return self.animations.get('jump', [])
+
+        elif self.state == self.STATE_WALK_LEFT:
+            return self.animations.get('walk_left', [])
+
+        elif self.current == self.STATE_WALK_RIGHT:
+            return self.animations.get('walk_right', [])
+
+        elif self.current == self.STATE_WALK_UP:
+            if self.facing_direction == 'left':
+                return self.animations.get('walk_up_left', [])
+            else:
+                return self.animations.get('walk_up_right', [])
+
+        elif self.current == self.STATE_WALK_DOWN:
+            if self.facing_direction == 'left':
+                return self.animations.get('walk_down_left', [])
+            else:
+                return self.animations.get('walk_down_right', [])
+
+        return []
 
     def choose_Next_State(self):
         """Pick a new state"""
