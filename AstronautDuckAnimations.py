@@ -17,8 +17,8 @@ class AstronautDuckAnimations:
 
     def __init__(self):
         # window config
-        window = tk.Tk()
-        window.overrideredirect(True);
+        self.window = tk.Tk()
+        self.window.overrideredirect(True);
         self.window.wm_attributes('-transparentcolor', 'black')
         self.window.wm_attributes('-topmost', True)
 
@@ -26,9 +26,10 @@ class AstronautDuckAnimations:
         self.pet_height = 100
 
         # save starting position
-        # TODO: will update later using window.geometry
-        self.x = self.screen_width
-        self.y = self.screen_height
+        self.screen_width = self.window.winfo_screenwidth()
+        self.screen_height = self.window.winfo_screenheight()
+        self.x = self.screen_width // 2
+        self.y = self.screen_height // 2
 
         # duck speed
         self.speed = 5
@@ -55,7 +56,9 @@ class AstronautDuckAnimations:
         self.load_animations()
 
         # start animation
-        self.animate
+        self.animate()
+        self.last_jump_time = time.time()
+
 
     def load_animations(self):
         # load image and gifs
@@ -96,32 +99,33 @@ class AstronautDuckAnimations:
             return None
 
         elif self.state == self.STATE_JUMP:
-            return self.animations.get('jump', [])
+            if self.facing_direction == 'left':
+                return self.animations.get('jump_left', [])
+            else:
+                return self.animations.get('jump_right', [])
 
         elif self.state == self.STATE_WALK_LEFT:
             return self.animations.get('walk_left', [])
 
-        elif self.current == self.STATE_WALK_RIGHT:
+        elif self.state == self.STATE_WALK_RIGHT:
             return self.animations.get('walk_right', [])
 
-        elif self.current == self.STATE_WALK_UP:
+        elif self.state == self.STATE_WALK_UP:
             if self.facing_direction == 'left':
-                return self.animations.get('walk_up_left', [])
+                return self.animations.get('walk_left', [])
             else:
-                return self.animations.get('walk_up_right', [])
+                return self.animations.get('walk_right', [])
 
-        elif self.current == self.STATE_WALK_DOWN:
+        elif self.state == self.STATE_WALK_DOWN:
             if self.facing_direction == 'left':
-                return self.animations.get('walk_down_left', [])
+                return self.animations.get('walk_left', [])
             else:
-                return self.animations.get('walk_down_right', [])
+                return self.animations.get('walk_right', [])
 
         return []
 
     def choose_Next_State(self):
         """Pick a new state"""
-
-        start_time = time.time()
         rng = random.randint(1,6)
         if rng == 1:
             self.currentState = self.STATE_ANGRY
@@ -169,8 +173,10 @@ class AstronautDuckAnimations:
 
     def update_animation_frame(self):
         if self.state == self.STATE_STANDING:
-            self.label.configure(image=self.standing_image)
-            return
+            if self.facing_direction == 'left':
+                return self.label.configure(image=self.standing_left_image)
+            else:
+                return self.label.configure(image=self.standing_right_image)
         current_animation = self.get_current_animation()
 
         if len(current_animation) > 0:
@@ -181,9 +187,15 @@ class AstronautDuckAnimations:
     def animate(self):
         self.update_animation_frame()
         self.update_position()
-        self
+        self.check_screen_boundaries()
+        self.window.geometry(f'{self.pet_width}x{self.pet_height}+{self.x}+{self.y}')
         # update next frame
-        self.window.after(100, self.animate)
+        self.state_counter += 1
+        if self.state_counter >= self.max_state_counter:
+            self.choose_Next_State()
+            self.state_counter = 0
+            self.frame_index = 0
+
 
     def run(self):
         self.window.mainloop()
@@ -193,7 +205,3 @@ class AstronautDuckAnimations:
             self.facing_direction = 'left'
         elif self.current_state == self.STATE_WALK_RIGHT:
             self.facing_direction = 'right'
-
-
-
-
