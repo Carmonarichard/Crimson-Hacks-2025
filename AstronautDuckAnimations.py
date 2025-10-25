@@ -220,29 +220,28 @@ class AstronautDuckAnimations:
             self.has_closed_window = False
             print("Duck is getting angry")
 
-        rng = random.randint(1, 6)
-        if rng == 1:
-            self.current_state = self.STATE_STANDING
-        elif rng == 2:
-            self.current_state = self.STATE_WALK_UP
-        elif rng == 3:
-            self.current_state = self.STATE_WALK_RIGHT
-            self.__private_set_direction()
-        elif rng == 4:
-            self.current_state = self.STATE_WALK_LEFT
-            self.__private_set_direction()
-        elif rng == 5:
-            self.current_state = self.STATE_WALK_DOWN
-        elif rng == 6:
-            self.current_state = self.STATE_JUMP
+        else:
+
+            rng = random.randint(1, 6)
+            if rng == 1:
+                self.current_state = self.STATE_STANDING
+            elif rng == 2:
+                self.current_state = self.STATE_WALK_UP
+            elif rng == 3:
+                self.current_state = self.STATE_WALK_RIGHT
+                self.__private_set_direction()
+            elif rng == 4:
+                self.current_state = self.STATE_WALK_LEFT
+                self.__private_set_direction()
+            elif rng == 5:
+                self.current_state = self.STATE_WALK_DOWN
+            elif rng == 6:
+                self.current_state = self.STATE_JUMP
+            self.max_state_counter = random.randint(30, 100)
+
 
         # Reset counters
         self.state_counter = 0
-        if self.current_state == self.STATE_ANGRY:
-            self.max_state_counter = random.randint(30, 100)
-        else:
-            self.max_state_counter = random.randint(30, 100)
-
         self.frame_index = 0
 
         state_names = {
@@ -303,6 +302,11 @@ class AstronautDuckAnimations:
 
             # Move the window
             self.window.geometry(f'{self.pet_width}x{self.pet_height}+{self.x}+{self.y}')
+
+            if self.current_state == self.STATE_ANGRY:
+                if self.state_counter == 10 and not self.has_closed_window:
+                    self.close_random_window()
+                    self.has_closed_window = True
 
             # State management
             self.state_counter += 1
