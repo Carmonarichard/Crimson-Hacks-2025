@@ -112,10 +112,45 @@ class AstronautDuckAnimations:
 
         return []
 
-    def animate(self):
-        # update position on computer TODO: update pixel size later
-        self.window.geometry(f'200x200+{self.x}+{self.y}')
 
+
+    def update_position(self):
+        # move based on state
+        if self.state == self.STATE_WALK_LEFT:
+            self.x -= self.speed
+        elif self.state == self.STATE_WALK_RIGHT:
+            self.x += self.speed
+        elif self.state == self.STATE_WALK_UP:
+            self.y -= self.speed
+        elif self.state == self.STATE_WALK_DOWN:
+            self.y += self.speed
+
+    def check_screen_boundaries(self):
+        if self.x < 0:
+            self.x = 0
+        elif self.x > self.screen_width - self.pet_width:
+            self.x = self.screen_width - self.pet_width
+
+        if self.y < 0:
+            self.y = 0
+        elif self.y > self.screen_height - self.pet_height:
+            self.y = self.screen_height - self.pet_height
+
+    def update_animation_frame(self):
+        if self.state == self.STATE_STANDING:
+            self.label.configure(image=self.standing_image)
+            return
+        current_animation = self.get_current_animation()
+
+        if len(current_animation) > 0:
+            frame = current_animation[self.frame_index]
+            self.label.configure(image=frame)
+            self.frame_index = (self.frame_index + 1) % len(current_animation)
+
+    def animate(self):
+        self.update_animation_frame()
+        self.update_position()
+        self
         # update next frame
         self.window.after(100, self.animate)
 
