@@ -3,6 +3,7 @@ import os
 import pyautogui
 import random
 import tkinter as tk
+import time
 
 class AstronautDuckAnimations:
 
@@ -12,6 +13,7 @@ class AstronautDuckAnimations:
     STATE_WALK_RIGHT = 4
     STATE_WALK_UP = 5
     STATE_WALK_DOWN = 6
+    STATE_ANGRY = 7
 
     def __init__(self):
         # window config
@@ -112,6 +114,35 @@ class AstronautDuckAnimations:
 
         return []
 
+    def choose_Next_State(self):
+        """Pick a new state"""
+
+        start_time = time.time()
+        rng = random.randint(1,6)
+        match rng:
+            case 1:
+                self.currentState = self.STATE_ANGRY
+            case 2:
+                self.current_state = self.STATE_WALK_UP
+            case 3:
+                self.current_state = self.STATE_WALK_RIGHT
+                self.__private_SetDirection()
+            case 4:
+                self.current_state = self.STATE_WALK_LEFT
+                self.__private_SetDirection()
+            case 5:
+                self.current_state = self.STATE_WALK_DOWN
+            case 6:
+                self.current_state = self.STATE_STANDING
+
+        if self.current_state == self.STATE_STANDING:
+            if (time.time() - start_time) >= 5:
+                start_time = time.time()  # reset timer
+                for i in range(random.randint(1, 3)):
+                    self.current_state = self.STATE_JUMP
+                self.current_state = self.STATE_STANDING
+
+
 
 
     def update_position(self):
@@ -157,8 +188,11 @@ class AstronautDuckAnimations:
     def run(self):
         self.window.mainloop()
 
-
-
+    def __private_SetDirection(self):
+        if self.current_state == self.STATE_WALK_LEFT:
+            self.facing_direction = 'left'
+        elif self.current_state == self.STATE_WALK_RIGHT:
+            self.facing_direction = 'right'
 
 
 
