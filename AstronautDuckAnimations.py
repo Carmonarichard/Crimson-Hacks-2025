@@ -81,6 +81,10 @@ class AstronautDuckAnimations:
                 except Exception as e:
                     print(f'Failed to load {animation_name} animation')
                     self.animations[animation_name] = []
+            else:
+                print(f'Image path {image_path} does not exist')
+                self.animations[animation_name] = []
+
 
 
     def animate(self):
