@@ -44,7 +44,8 @@ class AstronautDuckAnimations:
         # animation variables TODO: will update later
         self.frame_index = 0
         self.animations = {}
-        self.standing_image = None
+        self.standing_right_image = None
+        self.standing_left_image = None
 
         # label for images
         self.label = tk.Label(self.window, bg='black')
@@ -59,7 +60,7 @@ class AstronautDuckAnimations:
     def load_animations(self):
         # load image and gifs
         try:
-            self.standing_image = tk.PhotoImage(file='images/duck_standing.png')
+            self.standing_right_image = tk.PhotoImage(file='images/duck_standing.png')
             print('Successfully loaded standing image') #TODO: remove later
         except Exception as e:
             print('Failed to load standing image')
@@ -119,21 +120,20 @@ class AstronautDuckAnimations:
 
         start_time = time.time()
         rng = random.randint(1,6)
-        match rng:
-            case 1:
-                self.currentState = self.STATE_ANGRY
-            case 2:
-                self.current_state = self.STATE_WALK_UP
-            case 3:
-                self.current_state = self.STATE_WALK_RIGHT
-                self.__private_SetDirection()
-            case 4:
-                self.current_state = self.STATE_WALK_LEFT
-                self.__private_SetDirection()
-            case 5:
-                self.current_state = self.STATE_WALK_DOWN
-            case 6:
-                self.current_state = self.STATE_STANDING
+        if rng == 1:
+            self.currentState = self.STATE_ANGRY
+        elif rng == 2:
+            self.current_state = self.STATE_WALK_UP
+        elif rng == 3:
+            self.current_state = self.STATE_WALK_RIGHT
+            self.__private_SetDirection()
+        elif rng == 4:
+            self.current_state = self.STATE_WALK_LEFT
+            self.__private_SetDirection()
+        elif rng == 5:
+            self.current_state = self.STATE_WALK_DOWN
+        elif rng == 6:
+            self.current_state = self.STATE_STANDING
 
         if self.current_state == self.STATE_STANDING:
             if (time.time() - start_time) >= 5:
@@ -141,9 +141,6 @@ class AstronautDuckAnimations:
                 for i in range(random.randint(1, 3)):
                     self.current_state = self.STATE_JUMP
                 self.current_state = self.STATE_STANDING
-
-
-
 
     def update_position(self):
         # move based on state
